@@ -227,6 +227,7 @@ class Thanks(Page):
 
 page_sequence = [
     MyPage,
+    Instructions,
     ShuffleWaitPage,
     Survey,
     SurveyWaitPage,
