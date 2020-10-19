@@ -129,5 +129,6 @@ page_sequence = [
     Instructions,
     Decision,
     ResultsWaitPage,
+     DataSaveWaitPage,
     Thanks,
 ]
