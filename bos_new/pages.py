@@ -62,7 +62,8 @@ class Decision(Page):
         form_fields = [list(i) for i in zip(*self.participant.vars['form_fields_plus_index'])][1]
 
         return {
-                'form_fields': form_fields
+                'form_fields': form_fields,
+
                 }
 
     # METHOD: =================================================================================== #
@@ -76,7 +77,6 @@ class Decision(Page):
         # DYNAMICALLY WRITE BACK PLAYER PREFS AND PREFS TO A LIST OF PREFS ====================== #
         for n, pref in zip(indices, form_fields):
             choice_i = getattr(self.player, pref)
-            self.participant.vars['player_prefs'][n - 1] = int(choice_i)
 
         # PREPARE PREFS FOR THE ALLOCATION ====================================================== #
         self.player.prepare_decisions()
@@ -126,9 +126,11 @@ class Thanks(Page):
 
 page_sequence = [
     MyPage,
+    DataSaveWaitPage,
     Instructions,
     Decision,
     ResultsWaitPage,
-     DataSaveWaitPage,
+    DataSaveWaitPage,
+    # Results
     Thanks,
 ]

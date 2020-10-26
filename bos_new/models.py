@@ -7,6 +7,7 @@ from itertools import chain
 import random
 from math import floor
 from bos_new.user_settings import *
+
 from otree.models import Participant
 import csv
 import datetime
@@ -27,22 +28,28 @@ t.b.d.
 
 
 class Subsession(BaseSubsession):
+
+
     def save_results(self):
         players = self.get_players()
+        matrix = self.get_group_matrix()
         date_now = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
         session_name = 'bos_new'
         for p in players:
             print('print_survey',
                   session_name,
                   p.session.code,
+                  matrix,
                   p.participant.code,
                   p.participant.label,
                   p.participant_id,
                   p.id_in_subsession,
                   p.id_in_group,
                   p.group.id_in_subsession,
-                  p.age,
-                  p.gender)
+                  p.participant.vars['valuations'],
+                  p.participant.vars['player_prefs'],
+                  p.payoff,
+                  p.participant.vars['successful'])
 
         print('Saving data in output_session.csv')
         with open("output_session.csv", "a", encoding='shift_jis') as fp0:
@@ -51,14 +58,37 @@ class Subsession(BaseSubsession):
                 wr0.writerow([date_now,
                               session_name,
                               p.session.code,
+                              matrix,
                               p.participant.code,
                               p.participant.label,
                               p.participant_id,
                               p.id_in_subsession,
                               p.id_in_group,
                               p.group.id_in_subsession,
-                              p.age,
-                              p.gender])
+                              p.participant.vars['valuations'],
+                              p.participant.vars['player_prefs'],
+                              p.payoff,
+                              p.participant.vars['successful']])
+
+        print('Saving data in output_session_my_bos.csv')
+        with open("./bos_new/static/output_session_my_bos.csv", "a", encoding='shift_jis') as fp1:
+            wr1 = csv.writer(fp1)
+            for p in players:
+                wr1.writerow([date_now,
+                              session_name,
+                              p.session.code,
+                              matrix,
+                              p.participant.code,
+                              p.participant.label,
+                              p.participant_id,
+                              p.id_in_subsession,
+                              p.id_in_group,
+                              p.group.id_in_subsession,
+                              p.participant.vars['valuations'],
+                              p.participant.vars['player_prefs'],
+                              p.payoff,
+                              p.participant.vars['successful']])
+
 
 
     # METHOD: =================================================================================== #
@@ -114,12 +144,13 @@ class Subsession(BaseSubsession):
         valuations = [i for i in Constants.valuations]
         capacities = [i for i in Constants.capacities]
         decisions = zip(players, player_prefs)
+        intentions = zip(players, player_intents)
         successful = [p.participant.vars['successful'] for p in players]
         successful_with_id = zip(players, successful)
         valuations_all_types = zip(types, valuations)
         priorities_all_players = zip(players, player_priorities)
 
-        data_all = zip(players, player_valuations, player_prefs, successful)
+        data_all = zip(players, player_intents,player_valuations, player_prefs, successful)
 
         return {
                 'indices': indices,
@@ -129,6 +160,7 @@ class Subsession(BaseSubsession):
                 'player_prefs': player_prefs,
                 'last_player_per_group': last_player_per_group,
                 'player_priorities': player_priorities,
+                'player_intents': player_intents,
                 'capacities': capacities,
                 'decisions': decisions,
                 'successful': successful,

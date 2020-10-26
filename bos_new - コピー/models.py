@@ -5,19 +5,20 @@ from otree.api import (
 from itertools import chain
 import random
 from math import floor
-from bos.user_settings import *
+from bos_new_copy.user_settings import *
+
+from otree.models import Participant
+import csv
+import datetime
 
 author = 'Benjamin Pichl'
 
 doc = """
-This app is intended to model a school choice problem. It implements the Boston School Choice Mechanism within the 
+This app is intended to model a school choice problem. It implements the Boston School Choice Mechanism within the
 oTree framework. If you have any questions, comments, feature requests, or bug reports, please write me an eMail:
 benjamin.pichl@outlook.com.
-
 If you intend to use this code for your own research purposes, please cite:
-
 t.b.d.
-
 """
 
 
@@ -38,6 +39,8 @@ class Subsession(BaseSubsession):
             p.participant.vars['form_fields_plus_index'] = list(zip(indices, form_fields))
             p.participant.vars['player_prefs'] = [None for n in indices]
             p.participant.vars['successful'] = [False for n in indices]
+            p.participant.vars['player_intents'] = [None for n in indices]
+            p.participant.vars['valuations'] = [None for n in indices]
 
         # ALLOCATE THE CORRECT VALUATIONS VECTOR TO PLAYER (DEPENDING ON TYPE) ================== #
         # AND GET OTHER PLAYERS' VALUATIONS AND TYPES TO DISPLAY IF DESIRED                       #
@@ -60,6 +63,167 @@ class Subsession(BaseSubsession):
             for i in Constants.priorities:
                 p.participant.vars['priorities'].extend([(i.index(j) + 1) for j in i if j == p.id_in_group])
 
+        matrix = self.get_group_matrix()
+        date_now = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+        session_name = 'bos_new_copy'
+
+        for p in players:
+            print('creating_session',
+                  session_name,
+                  p.session.code,
+                  matrix,
+                  p.participant.code,
+                  p.participant.label,
+                  p.participant_id,
+                  p.id_in_subsession,
+                  p.id_in_group,
+                  p.group.id_in_subsession,
+                  p.participant.vars['valuations'],
+                  p.participant.vars['player_prefs'],
+                  p.participant.vars['player_intents'],
+                  p.participant.vars['successful'])
+
+    def do_my_shuffle(self):
+        self.group_randomly()
+        players = self.get_players()
+        matrix = self.get_group_matrix()
+        date_now = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+        session_name = 'bos_new_copy'
+        # print do_my_shuffle_before
+        for p in players:
+            print('do_my_shuffle_before',
+                  session_name,
+                  p.session.code,
+                  matrix,
+                  p.participant.code,
+                  p.participant.label,
+                  p.participant_id,
+                  p.id_in_subsession,
+                  p.id_in_group,
+                  p.group.id_in_subsession,
+                  p.participant.vars['valuations'],
+                  p.participant.vars['player_prefs'],
+                  p.participant.vars['player_intents'],
+                  p.participant.vars['successful'])
+
+        # CREATE INDICES FOR MOST IMPORTANT VARS ================================================ #
+        indices = [j for j in range(1, Constants.nr_courses + 1)]
+
+        # CREATE FORM TEMPLATES FOR DECISION.HTML  ============================================== #
+        form_fields = ['pref_c' + str(j) for j in indices]
+
+        for p in players:
+            p.participant.vars['form_fields_plus_index'] = list(zip(indices, form_fields))
+            p.participant.vars['player_prefs'] = [None for n in indices]
+            p.participant.vars['successful'] = [False for n in indices]
+            p.participant.vars['player_intents'] = [None for n in indices]
+            p.participant.vars['valuations'] = [None for n in indices]
+
+        # ALLOCATE THE CORRECT VALUATIONS VECTOR TO PLAYER (DEPENDING ON TYPE) ================== #
+        # AND GET OTHER PLAYERS' VALUATIONS AND TYPES TO DISPLAY IF DESIRED                       #
+        type_names = ['Type ' + str(i) for i in range(1, Constants.nr_types + 1)]
+
+        for p in players:
+            p.participant.vars['valuations_others'] = []
+            p.participant.vars['other_types_names'] = []
+            for t in type_names:
+                if p.role() == t:
+                    p.participant.vars['valuations'] = Constants.valuations[type_names.index(t)]
+                else:
+                    if Constants.nr_types > 1:
+                        p.participant.vars['valuations_others'].append(Constants.valuations[type_names.index(t)])
+                        p.participant.vars['other_types_names'] = [t for t in type_names if p.role() != t]
+
+        # ALLOCATE THE CORRECT PRIORITIES VECTOR TO PLAYER (DEPENDING ON ID) ==================== #
+        for p in players:
+            p.participant.vars['priorities'] = []
+            for i in Constants.priorities:
+                p.participant.vars['priorities'].extend([(i.index(j) + 1) for j in i if j == p.id_in_group])
+
+        # print do_my_shuffle_after
+        for p in players:
+            print('do_my_shuffle_after',
+                  session_name,
+                  p.session.code,
+                  matrix,
+                  p.participant.code,
+                  p.participant.label,
+                  p.participant_id,
+                  p.id_in_subsession,
+                  p.id_in_group,
+                  p.group.id_in_subsession,
+                  p.participant.vars['valuations'],
+                  p.participant.vars['player_prefs'],
+                  p.participant.vars['player_intents'],
+                  p.participant.vars['successful'])
+
+    def save_results(self):
+        players = self.get_players()
+        matrix = self.get_group_matrix()
+        date_now = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+        session_name = 'bos_new_copy'
+        for p in players:
+            print('print_results',
+                  session_name,
+                  p.session.code,
+                  matrix,
+                  p.participant.code,
+                  p.participant.label,
+                  p.participant_id,
+                  p.id_in_subsession,
+                  p.id_in_group,
+                  p.group.id_in_subsession,
+                  p.participant.vars['valuations'],
+                  p.participant.vars['player_prefs'],
+                  p.participant.vars['player_intents'],
+                  p.participant.vars['player_resource'],
+                  p.payoff,
+                  p.participant.vars['successful'])
+
+        print('Saving data in output_session.csv')
+        with open("output_session.csv", "a", encoding='shift_jis') as fp0:
+            wr0 = csv.writer(fp0)
+            for p in players:
+                wr0.writerow([date_now,
+                              session_name,
+                              p.session.code,
+                              matrix,
+                              p.participant.code,
+                              p.participant.label,
+                              p.participant_id,
+                              p.id_in_subsession,
+                              p.id_in_group,
+                              p.group.id_in_subsession,
+                              p.participant.vars['valuations'],
+                              p.participant.vars['player_prefs'],
+                              p.participant.vars['player_intents'],
+                              p.participant.vars['player_resource'],
+                              p.payoff,
+                              p.participant.vars['successful']])
+
+        print('Saving data in output_session_bos_new_copy.csv')
+        with open("./bos_new_copy/static/output_session_bos_new_copy.csv", "a", encoding='shift_jis') as fp1:
+            wr1 = csv.writer(fp1)
+            for p in players:
+                wr1.writerow([date_now,
+                              session_name,
+                              p.session.code,
+                              matrix,
+                              p.participant.code,
+                              p.participant.label,
+                              p.participant_id,
+                              p.id_in_subsession,
+                              p.id_in_group,
+                              p.group.id_in_subsession,
+                              p.participant.vars['valuations'],
+                              p.participant.vars['player_prefs'],
+                              p.participant.vars['player_intents'],
+                              p.participant.vars['player_resource'],
+                              p.payoff,
+                              p.participant.vars['successful']])
+
+
+
     # METHOD: =================================================================================== #
     # PREPARE ADMIN REPORT ====================================================================== #
     # =========================================================================================== #
@@ -69,6 +233,7 @@ class Subsession(BaseSubsession):
         table_nr_tds_decisions = Constants.nr_courses + 2
         table_nr_tds_priorities = Constants.nr_courses + 1
         player_prefs = [p.participant.vars['player_prefs'] for p in players]
+        player_intents = [p.participant.vars['player_intents'] for p in players]
         last_player_per_group = [i[-1] for i in self.get_group_matrix()]
         player_valuations = [p.participant.vars['valuations'] for p in players]
         player_priorities = [p.participant.vars['priorities'] for p in players]
@@ -76,29 +241,32 @@ class Subsession(BaseSubsession):
         valuations = [i for i in Constants.valuations]
         capacities = [i for i in Constants.capacities]
         decisions = zip(players, player_prefs)
+        intentions = zip(players, player_intents)
         successful = [p.participant.vars['successful'] for p in players]
         successful_with_id = zip(players, successful)
         valuations_all_types = zip(types, valuations)
         priorities_all_players = zip(players, player_priorities)
 
-        data_all = zip(players, player_valuations, player_prefs, successful)
+        data_all = zip(players, player_intents, player_valuations, player_prefs, successful)
 
         return {
-                'indices': indices,
-                'players': players,
-                'table_nr_tds_decisions': table_nr_tds_decisions,
-                'table_nr_tds_priorities': table_nr_tds_priorities,
-                'player_prefs': player_prefs,
-                'last_player_per_group': last_player_per_group,
-                'player_priorities': player_priorities,
-                'capacities': capacities,
-                'decisions': decisions,
-                'successful': successful,
-                'successful_with_id': successful_with_id,
-                'valuations_all_types': valuations_all_types,
-                'priorities_all_players': priorities_all_players,
+            'indices': indices,
+            'players': players,
+            'table_nr_tds_decisions': table_nr_tds_decisions,
+            'table_nr_tds_priorities': table_nr_tds_priorities,
+            'player_prefs': player_prefs,
+            'last_player_per_group': last_player_per_group,
+            'player_priorities': player_priorities,
+            'player_intents': player_intents,
+            'capacities': capacities,
+            'decisions': decisions,
+            'intentions': intentions,
+            'successful': successful,
+            'successful_with_id': successful_with_id,
+            'valuations_all_types': valuations_all_types,
+            'priorities_all_players': priorities_all_players,
 
-                'data_all': data_all
+            'data_all': data_all
         }
 
 
@@ -111,6 +279,10 @@ class Group(BaseGroup):
         # CREATE INDICES FOR MOST IMPORTANT VARS ================================================ #
         players = self.get_players()
         indices = [j for j in range(1, Constants.nr_courses + 1)]
+
+        # initialize 'successful' again
+        for p in players:
+            p.participant.vars['successful'] = [False for n in indices]
 
         # COLLECT PREPARED_LIST FROM ALL PLAYERS AND ORDER THEM IN ONE SINGLE LIST IN =========== #
         # DESCENDING ORDER OF PREFS.                                                              #
@@ -171,7 +343,6 @@ class Group(BaseGroup):
                 if n in p.participant.vars['player_resource']:
                     p.payoff += p.participant.vars['valuations'][n - 1]
                     p.participant.vars['successful'][n - 1] = True
-
 
 class Player(BasePlayer):
 

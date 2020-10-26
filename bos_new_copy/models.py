@@ -6,7 +6,7 @@ from otree.api import (
 from itertools import chain
 import random
 from math import floor
-from bos_new_survey.user_settings import *
+from bos_new_copy.user_settings import *
 
 from otree.models import Participant
 import csv
@@ -18,11 +18,8 @@ doc = """
 This app is intended to model a school choice problem. It implements the Boston School Choice Mechanism within the
 oTree framework. If you have any questions, comments, feature requests, or bug reports, please write me an eMail:
 benjamin.pichl@outlook.com.
-
 If you intend to use this code for your own research purposes, please cite:
-
 t.b.d.
-
 """
 
 
@@ -69,7 +66,7 @@ class Subsession(BaseSubsession):
 
         matrix = self.get_group_matrix()
         date_now = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
-        session_name = 'my_survey_bos'
+        session_name = 'bos_new_copy'
 
         for p in players:
             print('creating_session',
@@ -92,7 +89,7 @@ class Subsession(BaseSubsession):
         players = self.get_players()
         matrix = self.get_group_matrix()
         date_now = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
-        session_name = 'my_survey_bos'
+        session_name = 'bos_new_copy'
         # print do_my_shuffle_before
         for p in players:
             print('do_my_shuffle_before',
@@ -165,7 +162,7 @@ class Subsession(BaseSubsession):
         players = self.get_players()
         matrix = self.get_group_matrix()
         date_now = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
-        session_name = 'bos_new_survey'
+        session_name = 'bos_new_copy'
         for p in players:
             print('print_results',
                   session_name,
@@ -205,8 +202,8 @@ class Subsession(BaseSubsession):
                               p.payoff,
                               p.participant.vars['successful']])
 
-        print('Saving data in output_session_my_survey_bos.csv')
-        with open("./bos_new_survey/static/output_session_bos_new_survey.csv", "a", encoding='shift_jis') as fp1:
+        print('Saving data in output_session_bos_new_copy.csv')
+        with open("./bos_new_copy/static/output_session_bos_new_copy.csv", "a", encoding='shift_jis') as fp1:
             wr1 = csv.writer(fp1)
             for p in players:
                 wr1.writerow([date_now,
@@ -225,6 +222,8 @@ class Subsession(BaseSubsession):
                               p.participant.vars['player_resource'],
                               p.payoff,
                               p.participant.vars['successful']])
+
+
 
     # METHOD: =================================================================================== #
     # PREPARE ADMIN REPORT ====================================================================== #
@@ -249,26 +248,26 @@ class Subsession(BaseSubsession):
         valuations_all_types = zip(types, valuations)
         priorities_all_players = zip(players, player_priorities)
 
-        data_all = zip(players, player_valuations, player_prefs, successful)
+        data_all = zip(players, player_intents, player_valuations, player_prefs, successful)
 
         return {
-                'indices': indices,
-                'players': players,
-                'table_nr_tds_decisions': table_nr_tds_decisions,
-                'table_nr_tds_priorities': table_nr_tds_priorities,
-                'player_prefs': player_prefs,
-                'last_player_per_group': last_player_per_group,
-                'player_priorities': player_priorities,
-                'player_intents': player_intents,
-                'capacities': capacities,
-                'decisions': decisions,
-                'intentions': intentions,
-                'successful': successful,
-                'successful_with_id': successful_with_id,
-                'valuations_all_types': valuations_all_types,
-                'priorities_all_players': priorities_all_players,
+            'indices': indices,
+            'players': players,
+            'table_nr_tds_decisions': table_nr_tds_decisions,
+            'table_nr_tds_priorities': table_nr_tds_priorities,
+            'player_prefs': player_prefs,
+            'last_player_per_group': last_player_per_group,
+            'player_priorities': player_priorities,
+            'player_intents': player_intents,
+            'capacities': capacities,
+            'decisions': decisions,
+            'intentions': intentions,
+            'successful': successful,
+            'successful_with_id': successful_with_id,
+            'valuations_all_types': valuations_all_types,
+            'priorities_all_players': priorities_all_players,
 
-                'data_all': data_all
+            'data_all': data_all
         }
 
 
@@ -282,10 +281,9 @@ class Group(BaseGroup):
         players = self.get_players()
         indices = [j for j in range(1, Constants.nr_courses + 1)]
 
-         # initialize 'successful' again
+        # initialize 'successful' again
         for p in players:
             p.participant.vars['successful'] = [False for n in indices]
-
 
         # COLLECT PREPARED_LIST FROM ALL PLAYERS AND ORDER THEM IN ONE SINGLE LIST IN =========== #
         # DESCENDING ORDER OF PREFS.                                                              #
@@ -347,8 +345,8 @@ class Group(BaseGroup):
                     p.payoff += p.participant.vars['valuations'][n - 1]
                     p.participant.vars['successful'][n - 1] = True
 
-
 class Player(BasePlayer):
+
     age = models.IntegerField(
         label='年齢：',
         min=13, max=80)

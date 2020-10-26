@@ -23,6 +23,12 @@ SESSION_CONFIGS = [
         display_name='bos_new_survey',
         num_demo_participants=5,
         app_sequence=['bos_new_survey'],
+    ),
+    dict(
+        name='bos_new_copy',
+        display_name='bos_new_copy',
+        num_demo_participants=5,
+        app_sequence=['bos_new_copy'],
     )
 ]
 
