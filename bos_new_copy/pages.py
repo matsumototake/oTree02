@@ -231,6 +231,6 @@ page_sequence = [
     Decision,
     ResultsWaitPage,
     DataSaveWaitPage,
-#    Results,
+    Results,
     Thanks,
 ]
